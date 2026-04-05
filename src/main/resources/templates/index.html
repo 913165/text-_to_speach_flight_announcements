@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Spring AI Voice Studio</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<header>
+    <h1>🎙️ Spring AI Voice Studio</h1>
+    <p class="subtitle">Text to Speech using Spring AI + OpenAI</p>
+</header>
+
+<main>
+    <div class="card">
+
+        <!-- ── Tab Navigation ─────────────────────────────────────── -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="live">📡 Live Simulation</button>
+            <button class="tab-btn" data-tab="railway">✈️ Flight Announcement</button>
+            <button class="tab-btn" data-tab="tts">🔊 Text to Speech</button>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- TAB 1 – Live Simulation  (shown first / default active)  -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-live" class="tab-panel active">
+
+            <!-- Control bar -->
+            <div class="live-control-bar">
+                <div class="live-status-wrap">
+                    <span class="live-dot" id="liveDot"></span>
+                    <span class="live-status-text" id="liveStatusText">Ready to start simulation</span>
+                    <span class="live-counter" id="liveCounter"></span>
+                </div>
+                <div class="live-progress-wrap" id="liveProgressWrap" style="display:none">
+                    <div class="live-progress-track">
+                        <div class="live-progress-fill" id="liveProgressFill"></div>
+                    </div>
+                    <span class="live-countdown" id="liveCountdownText"></span>
+                </div>
+                <div class="live-btn-row">
+                    <button id="liveStartBtn" class="btn-live-start" type="button">
+                        ▶ Start Live Simulation
+                    </button>
+                    <button id="liveStopBtn" class="btn-live-stop" type="button" style="display:none">
+                        ⏹ Stop
+                    </button>
+                </div>
+            </div>
+
+            <!-- Current announcement playing -->
+            <div id="liveNowPlaying" class="live-now-playing" style="display:none">
+                <div class="live-now-label">🔊 Now Playing — Announcement <span id="liveNowIndex"></span> of 5</div>
+                <div class="live-now-text" id="liveNowText"></div>
+                <audio id="liveAudioPlayer" controls></audio>
+            </div>
+
+            <hr class="divider"/>
+
+            <!-- Live announcements list -->
+            <div class="live-list-header">
+                📋 Live Announcements
+                <button id="liveClearBtn" class="btn-clear-history" type="button">🗑 Clear</button>
+            </div>
+            <div id="liveAlertError" class="alert-error"></div>
+            <div id="liveList" class="live-list">
+                <div class="live-empty-msg" id="liveEmptyMsg">
+                    No announcements yet. Click <strong>Start Live Simulation</strong> to begin.
+                </div>
+            </div>
+
+        </div><!-- /tab-live -->
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- TAB 2 – Flight Announcement                              -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-railway" class="tab-panel">
+
+            <div id="ra-alertError" class="alert-error"></div>
+
+
+            <!-- Flight details form -->
+            <div class="ra-grid">
+
+                <div class="form-group">
+                    <label for="raTrainNumber">Flight Number <span class="required">*</span></label>
+                    <input type="text" id="raTrainNumber" placeholder="e.g. AI-202"/>
+                    <div class="validation-msg" id="raTrainNumberMsg">⚠️ Flight number is required.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="raTrainName">Airline</label>
+                    <input type="text" id="raTrainName" placeholder="e.g. Air India"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="raSource">Origin Airport</label>
+                    <input type="text" id="raSource" placeholder="e.g. Mumbai (BOM)"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="raDestination">Destination Airport</label>
+                    <input type="text" id="raDestination" placeholder="e.g. Delhi (DEL)"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="raPlatform">Gate</label>
+                    <input type="text" id="raPlatform" placeholder="e.g. Gate 14B"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="raTerminal">Terminal</label>
+                    <input type="text" id="raTerminal" placeholder="e.g. Terminal 2"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="raStatus">Status</label>
+                    <select id="raStatus">
+                        <option value="On Time">On Time</option>
+                        <option value="Boarding">Boarding</option>
+                        <option value="Delayed">Delayed</option>
+                        <option value="Gate Changed">Gate Changed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="raDelay">Delay Minutes <span class="optional">(optional)</span></label>
+                    <input type="number" id="raDelay" placeholder="e.g. 30" min="0"/>
+                </div>
+
+            </div><!-- /ra-grid -->
+
+            <button id="raGenerateBtn" type="button">
+                <div id="raSpinner" class="spinner"></div>
+                <span id="raBtnLabel">✈️ Generate Announcement</span>
+            </button>
+
+            <hr class="divider"/>
+
+            <!-- Result section -->
+            <div id="raResultSection" class="audio-section">
+
+                <div class="form-group">
+                    <div class="cc-label">📢 Generated Announcement</div>
+                    <div id="raAnnouncementText" class="cc-response-box"></div>
+                </div>
+
+                <h3>🔊 Audio Announcement</h3>
+                <audio id="raAudioPlayer" controls></audio>
+                <div class="audio-meta" id="raAudioDuration"></div>
+
+                <div class="audio-actions">
+                    <a id="raDownloadLink" class="btn-download" href="#" download="flight-announcement.mp3">
+                        ⬇️ Download MP3
+                    </a>
+                    <button id="raRegenerateBtn" class="btn-regenerate" type="button">🔄 Regenerate</button>
+                </div>
+            </div>
+
+            <!-- ── Announcement History ─────────────────────────────── -->
+            <div id="raHistorySection" class="ra-history" style="display:none">
+                <div class="ra-history-header">
+                    📋 Announcement History
+                    <button id="raClearHistory" class="btn-clear-history" type="button">🗑 Clear</button>
+                </div>
+                <div id="raHistoryList" class="ra-history-list"></div>
+            </div>
+
+        </div><!-- /tab-railway -->
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- TAB 3 – Text to Speech                                   -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-tts" class="tab-panel">
+
+            <div id="alertError" class="alert-error"></div>
+
+            <div class="form-group">
+                <label for="textInput">Enter text to convert into speech</label>
+                <textarea id="textInput"
+                          placeholder="Type or paste your text here…"
+                          maxlength="4096"></textarea>
+                <div class="char-counter" id="charCounter">0 / 4096</div>
+                <div class="validation-msg" id="validationMsg">⚠️ Please enter some text before generating audio.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="voiceSelect">Select voice</label>
+                <select id="voiceSelect">
+                    <option value="alloy">Alloy — Neutral &amp; Balanced</option>
+                    <option value="verse">Verse — Expressive &amp; Dynamic</option>
+                    <option value="nova">Nova — Warm &amp; Friendly</option>
+                    <option value="echo">Echo — Deep &amp; Authoritative</option>
+                    <option value="shimmer">Shimmer — Clear &amp; Crisp</option>
+                    <option value="sage">Sage — Calm &amp; Measured</option>
+                    <option value="coral">Coral — Bright &amp; Energetic</option>
+                </select>
+            </div>
+
+            <button id="generateBtn" type="button">
+                <div id="spinner" class="spinner"></div>
+                <span id="btnLabel">Generate Voice</span>
+            </button>
+
+            <hr class="divider"/>
+
+            <div id="audioSection" class="audio-section">
+                <h3>🔊 Generated Audio</h3>
+                <audio id="audioPlayer" controls></audio>
+                <div class="audio-meta" id="audioDuration"></div>
+                <div class="audio-actions">
+                    <a id="downloadLink" class="btn-download" href="#" download="speech.mp3">⬇️ Download MP3</a>
+                    <button id="regenerateBtn" class="btn-regenerate" type="button">🔄 Regenerate</button>
+                </div>
+            </div>
+
+        </div><!-- /tab-tts -->
+
+    </div><!-- /card -->
+</main>
+
+<footer>
+    <p>Powered by <strong>Spring AI</strong> &amp; <strong>OpenAI TTS</strong> · Spring AI Voice Studio</p>
+</footer>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
+
